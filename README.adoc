@@ -1,4 +1,4 @@
-== Kafka Super User based on ACLs.
+== Kafka Super User baseado em ACLs.
 
 No Kafka existem duas formas de conceder poderes administrativos:
 
@@ -15,18 +15,18 @@ porque a idéia é começar abrangente pra evitar problemas e ir monitorando
 os logs de falhas de autorização e comandos executados e ir ajustando para 
 um escopo mais restritivo.
 
-Recomendações
-	•	Habilite audit logs para rastrear quem executou cada ação.
-	•	Rotacione a senha periodicamente, mesmo que seja de serviço.
-	•	Documente as ACLs concedidas e o plano de redução de escopo.
+*Recomendações*:
 
-Resultado: 
+. Habilite audit logs para rastrear quem executou cada ação.
+. Rotacione a senha periodicamente, mesmo que seja de serviço.
+. Documente as ACLs concedidas e o plano de redução de escopo.
 
-Você terá um “quase-admin”:
+*Resultado*: Você terá um “quase-admin”:
 
-	•	Não está em super.users, então tudo é controlado via ACL.
-	•	Inicialmente tem o mesmo alcance de um superuser.
-	•	Com o tempo você consegue enxugar escopo com segurança, removendo ou restringindo ACLs sem impactar o cluster.
+. Não está em super.users, então tudo é controlado via ACL.
+. Inicialmente tem o mesmo alcance de um superuser.
+. Com o tempo você consegue enxugar escopo com segurança, removendo ou restringindo ACLs sem impactar o cluster.
+
 
 [cols="25,25,25,25", options="header"]
 |===
@@ -81,3 +81,4 @@ Você terá um “quase-admin”:
   --operation Alter --operation Describe --user '*'
 |===
 
+Adicionar instruções para uso do script `kafka-poweruser.sh`

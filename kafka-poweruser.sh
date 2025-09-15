@@ -8,12 +8,12 @@ set -euo pipefail
 # Defaults (pode sobrescrever via flags)
 # =========================
 BOOTSTRAP="${BOOTSTRAP:-localhost:9093}"
-PRINCIPAL_USER="${PRINCIPAL_USER:-poweruser}"         # nome do principal Kafka (ex.: User:poweruser)
+PRINCIPAL_USER="${PRINCIPAL_USER:-poweruser}"          # nome do principal Kafka (ex.: User:poweruser)
 TOPIC_PATTERN="${TOPIC_PATTERN:-*}"                    # tópicos alvo (use '*' ou prefixos)
 GROUP_PATTERN="${GROUP_PATTERN:-*}"                    # consumer groups alvo
 TXNID_PATTERN="${TXNID_PATTERN:-*}"                    # transactional.id alvo
 USER_ENTITY_PATTERN="${USER_ENTITY_PATTERN:-*}"        # para quotas/SCRAM (entity-type users)
-KAFKA_BIN="${KAFKA_BIN:-/opt/kafka/bin}"              # diretório dos scripts kafka-*.sh
+KAFKA_BIN="${KAFKA_BIN:-/opt/kafka/bin}"               # diretório dos scripts kafka-*.sh
 COMMAND_CONFIG="${COMMAND_CONFIG:-}"                   # arquivo de propriedades opcional p/ auth (ex.: client.properties)
 
 # Modo de operação
