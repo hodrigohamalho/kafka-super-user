@@ -1,0 +1,83 @@
+== Kafka Super User based on ACLs.
+
+No Kafka existem duas formas de conceder poderes administrativos:
+
+. Superuser (super.users): Listado em server.properties faz o  bypass total de ACLs. É simples mas é tudo ou nada. 
+
+. ACL baseada em User:<nome>: ACLs explícitas para operações administrativas (Cluster, Config, etc.).
+A idéia não é usar o super.users mas criar ACLs com escopo de administração para um usuário comum. 
+
+Para os casos de autenticação com certificado digital precisamos como esse usuário é identificado para utilizar nos scripts/comandos abaixo. 
+Não cheguei a testar aqui. 
+
+Sobre a abrangência das ACLs (*), estou utilizando * nas permissões, 
+porque a idéia é começar abrangente pra evitar problemas e ir monitorando 
+os logs de falhas de autorização e comandos executados e ir ajustando para 
+um escopo mais restritivo.
+
+Recomendações
+	•	Habilite audit logs para rastrear quem executou cada ação.
+	•	Rotacione a senha periodicamente, mesmo que seja de serviço.
+	•	Documente as ACLs concedidas e o plano de redução de escopo.
+
+Resultado: 
+
+Você terá um “quase-admin”:
+
+	•	Não está em super.users, então tudo é controlado via ACL.
+	•	Inicialmente tem o mesmo alcance de um superuser.
+	•	Com o tempo você consegue enxugar escopo com segurança, removendo ou restringindo ACLs sem impactar o cluster.
+
+[cols="25,25,25,25", options="header"]
+|===
+| Área / Recurso
+| Operações (ACL)
+| Finalidade
+| Comando CLI de criação
+
+| Cluster – administração geral
+| Alter, Describe, ClusterAction, IdempotentWrite
+| Alterar configs de cluster, rodar reassignment, election de líder, permitir producers idempotentes
+| kafka-acls.sh --bootstrap-server <broker> \
+  --add --allow-principal User:poweruser \
+  --operation Alter --operation Describe \
+  --operation ClusterAction --operation IdempotentWrite --cluster
+
+| Cluster – alterar/descrever configs de broker
+| AlterConfigs, DescribeConfigs
+| Alterar e consultar configs de brokers e do cluster
+| kafka-acls.sh --bootstrap-server <broker> \
+  --add --allow-principal User:poweruser \
+  --operation AlterConfigs --operation DescribeConfigs --cluster
+
+| Tópicos (todos)
+| Create, Delete, Alter, Describe, DescribeConfigs, AlterConfigs
+| Criar, excluir, alterar, listar tópicos e suas configs
+| kafka-acls.sh --bootstrap-server <broker> \
+  --add --allow-principal User:poweruser \
+  --operation Create --operation Delete --operation Alter \
+  --operation Describe --operation DescribeConfigs --operation AlterConfigs \
+  --topic '*'
+
+| Consumer Groups (todos)
+| Describe, Delete, Read
+| Listar grupos, deletar grupos, resetar offsets
+| kafka-acls.sh --bootstrap-server <broker> \
+  --add --allow-principal User:poweruser \
+  --operation Describe --operation Delete --operation Read --group '*'
+
+| Transactional Ids (se usa transações)
+| Describe, Write
+| Administrar produtores transacionais
+| kafka-acls.sh --bootstrap-server <broker> \
+  --add --allow-principal User:poweruser \
+  --operation Describe --operation Write --transactional-id '*'
+
+| Users (quotas e SCRAM)
+| Alter, Describe
+| Gerenciar quotas de usuários e credenciais SCRAM
+| kafka-acls.sh --bootstrap-server <broker> \
+  --add --allow-principal User:poweruser \
+  --operation Alter --operation Describe --user '*'
+|===
+
