@@ -17,15 +17,15 @@ um escopo mais restritivo.
 
 *Recomendações*:
 
-. Habilite audit logs para rastrear quem executou cada ação.
-. Rotacione a senha periodicamente, mesmo que seja de serviço.
-. Documente as ACLs concedidas e o plano de redução de escopo.
+* Habilite audit logs para rastrear quem executou cada ação.
+* Rotacione a senha periodicamente, mesmo que seja de serviço.
+* Documente as ACLs concedidas e o plano de redução de escopo.
 
 *Resultado*: Você terá um “quase-admin”:
 
-. Não está em super.users, então tudo é controlado via ACL.
-. Inicialmente tem o mesmo alcance de um superuser.
-. Com o tempo você consegue enxugar escopo com segurança, removendo ou restringindo ACLs sem impactar o cluster.
+* Não está em super.users, então tudo é controlado via ACL.
+* Inicialmente tem o mesmo alcance de um superuser.
+* Com o tempo você consegue enxugar escopo com segurança, removendo ou restringindo ACLs sem impactar o cluster.
 
 
 [cols="25,25,25,25", options="header"]
