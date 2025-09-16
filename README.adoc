@@ -81,4 +81,91 @@ um escopo mais restritivo.
   --operation Alter --operation Describe --user '*'
 |===
 
-Adicionar instruções para uso do script `kafka-poweruser.sh`
+O `script kafka_acl_profiles.sh` automatiza a criação, listagem e remoção de
+ACLs no Apache Kafka em diferentes cenários,
+incluindo ambientes com autenticação por TLS/certificados ou SASL.
+Ele permite aplicar perfis de permissões pré-definidos de forma segura,
+tanto em clusters com ZooKeeper quanto em clusters KRaft.
+
+== Pré-requisitos
+* Kafka 2.8+ ou Red Hat AMQ Streams compatível.
+* `kafka-acls.sh` disponível no host onde o script será executado.
+* Usuário/Principal já criado (mTLS, SASL/SCRAM ou SASL/OAUTH), com
+  o nome exatamente igual ao que o broker enxerga (ex.: após aplicar
+  `ssl.principal.mapping.rules`).
+* Caso utilize autenticação SASL, forneça um arquivo `client.properties`
+  com as credenciais e passe-o com `-c`.
+
+== Perfis Disponíveis
+* *admin* – Cria um **usuário de operação/CI (“quase-admin”)** com permissões de
+  administração via ACL, **sem** utilizar `super.users`.
+* *broker-zk* – Concede ao **principal do broker** as permissões necessárias
+  quando o cluster está em modo *ZooKeeper* e a política não permite
+  adicioná-lo a `super.users`.
+* *broker-kraft* – Mesmo objetivo anterior, mas para clusters em modo
+  *KRaft* (sem ZooKeeper).
+
+== Opções Principais
+[cols="1,3",options="header"]
+|===
+|Opção |Descrição
+|-b <host:porta> |Bootstrap server. Padrão: `localhost:9093`.
+|-u <usuario> |Principal (sem prefixo `User:`) para o qual as ACLs serão aplicadas.
+|-m <modo> |Perfil a aplicar: `admin`, `broker-zk` ou `broker-kraft`.
+|-c <props> |Arquivo `--command-config` com propriedades de autenticação da CLI (ex.: SASL).
+|--strict |(Apenas broker-zk/kraft) Aplica o *mínimo prático* de ACLs em vez do pacote amplo.
+|-r |Remove as ACLs em vez de adicioná-las.
+|-l |Lista as ACLs existentes do principal e sai.
+|-n |Dry-run: imprime os comandos sem executá-los.
+|===
+
+== Exemplos de Uso
+
+=== 1. Criar ACLs para usuário de administração
+```bash
+./kafka_acl_profiles.sh -m admin -b localhost:9093 -u ops-admin
+```
+
+=== 2. Criar ACLs para broker em ambiente ZooKeeper (pacote amplo)
+```bash
+./kafka_acl_profiles.sh -m broker-zk -b localhost:9093 -u broker-1
+```
+
+=== 3. Criar ACLs mínimas para broker em ambiente ZooKeeper
+```bash
+./kafka_acl_profiles.sh -m broker-zk -b kafka-prod:9093 -u broker-1 --strict -c client.properties
+```
+
+=== 4. Criar ACLs para broker em ambiente KRaft (pacote amplo)
+```bash
+./kafka_acl_profiles.sh -m broker-kraft -b kafka-dev:9093 -u broker-1
+```
+
+=== 5. Remover ACLs previamente aplicadas
+```bash
+./kafka_acl_profiles.sh -m admin -b kafka-prod:9093 -u ops-admin -r -c client.properties
+```
+
+=== 6. Listar ACLs do principal
+```bash
+./kafka_acl_profiles.sh -m admin -b localhost:9093 -u ops-admin -l
+```
+
+== Notas Importantes
+
+* Em ambientes com mTLS, garanta que o *principal* usado no `-u` seja
+  exatamente o que o broker enxerga. Caso necessário, configure
+  `ssl.principal.mapping.rules` no broker para normalizar o DN.
+
+* Para clusters com load balancer, **não termine o TLS no LB**
+  se depender do certificado de cliente para autenticação.
+
+* Em *broker-zk* e *broker-kraft*, se a política corporativa proibir
+  `super.users`, use o perfil `broker-*` para conceder ao broker as
+  permissões necessárias para replicação, coordenação de grupos e
+  transações. Com `--strict` é aplicado apenas o conjunto mínimo;
+  sem a flag, aplica o pacote mais amplo e resiliente.
+
+* O perfil `admin` não deve ser usado para o processo do broker,
+  apenas para identidades humanas ou de automação que executam
+  comandos de administração via CLI ou API AdminClient.
